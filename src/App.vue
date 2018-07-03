@@ -3,7 +3,12 @@
     data () {
       return {
         title: 'Commons Words',
-
+        ui: {
+          isAddWord: false,
+          isSearchWord: false,
+          inputNew: null,
+          inputSearch: null
+        },
         items: [
           { icon: 'P', iconClass: 'grey lighten-1 white--text', title: 'Photos', subtitle: 'Jan 9, 2014', frequency: 9 },
           { icon: 'R', iconClass: 'grey lighten-1 white--text', title: 'Recipes', subtitle: 'Jan 17, 2014', frequency: 7 },
@@ -23,16 +28,23 @@
     },
 
     methods: {
-      alert (message) {
-        window.alert(message)
-      },
-
       addFrequency (item) {
         item.frequency++
       },
-
       removeFrequency (item) {
         item.frequency > 0 && item.frequency--
+      },
+      addWord() {
+        if (!this.ui.inputNew || this.ui.inputNew.length < 3) return
+        this.items.push({
+          icon: this.ui.inputNew[0].toUpperCase(),
+          iconClass: 'grey lighten-1 white--text',
+          title: this.ui.inputNew,
+          subtitle: Date(),
+          frequency: 1
+        })
+        this.ui.inputNew = null
+        this.ui.isAddWord = false
       }
     }
   }
@@ -52,13 +64,45 @@
 
                   <v-spacer></v-spacer>
 
-                  <v-btn icon>
+                  <v-btn icon @click="ui.isSearchWord = !ui.isSearchWord">
                     <v-icon>search</v-icon>
+                  </v-btn>
+
+                  <v-btn icon @click="ui.isAddWord = !ui.isAddWord">
+                    <v-icon>add</v-icon>
                   </v-btn>
                 </v-toolbar>
 
                 <v-list two-line subheader>
-                  <v-subheader inset>Most frequenty</v-subheader>
+
+                  <v-slide-y-transition data-dev="add-word">
+                    <v-list-tile class="mt-2" v-show="ui.isAddWord">
+                      <v-text-field
+                        label="Word"
+                        prepend-icon="edit"
+                        v-model="ui.inputNew"
+                      ></v-text-field>
+                      <v-list-tile-action>
+                        <v-btn
+                          icon
+                          round
+                          class="ml-5"
+                          @click="addWord"
+                        >
+                          <v-icon>save_alt</v-icon>
+                        </v-btn>
+                      </v-list-tile-action>
+                    </v-list-tile>
+                  </v-slide-y-transition>
+
+                  <v-slide-y-transition data-dev="search-word">
+                    <v-list-tile class="mt-2" v-show="ui.isSearchWord">
+                      <v-text-field
+                        label="Search"
+                        prepend-icon="search"
+                      ></v-text-field>
+                    </v-list-tile>
+                  </v-slide-y-transition>
 
                   <v-list-tile
                     v-for="item in items"
@@ -90,9 +134,7 @@
                     </v-list-tile-action>
                   </v-list-tile>
 
-                  <v-divider inset></v-divider>
-
-                  <v-subheader inset>Less frequenty</v-subheader>
+                  <v-divider></v-divider>
                 </v-list>
               </v-card>
             </v-flex>

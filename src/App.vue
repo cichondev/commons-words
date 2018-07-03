@@ -1,27 +1,18 @@
 <script>
   export default {
-    data () {
-      return {
-        title: 'Commons Words',
-        ui: {
-          isAddWord: false,
-          isSearchWord: false,
-          newWord: {
-            word: null,
-            translate: null
-          },
-          inputSearch: null
+    data: () => ({
+      title: 'Commons Words',
+      ui: {
+        isAddWord: false,
+        isSearchWord: false,
+        newWord: {
+          word: null,
+          translate: null
         },
-        items: [
-          { word: 'What', translate: 'o que?', frequency: 9, icon: 'P', iconClass: 'grey lighten-1 white--text' },
-          { word: 'Why', translate: 'Por que?', frequency: 7, icon: 'R', iconClass: 'grey lighten-1 white--text' },
-          { word: 'Who', translate: 'Quem?', frequency: 5, icon: 'W', iconClass: 'grey lighten-1 white--text' },
-          { word: 'When', translate: 'Quando?', frequency: 5, icon: 'W', iconClass: 'grey lighten-1 white--text' },
-          { word: 'Where', translate: 'Onde?', frequency: 5, icon: 'W', iconClass: 'grey lighten-1 white--text' },
-          { word: 'How', translate: 'Como?', frequency: 5, icon: 'W', iconClass: 'grey lighten-1 white--text' }
-        ]
-      }
-    },
+        inputSearch: null
+      },
+      items: []
+    }),
 
     computed: {
       copyright () {
@@ -39,7 +30,7 @@
         item.frequency++
       },
 
-      removeFrequency (item) {
+      decreaseFrequency (item) {
         item.frequency > 0 && item.frequency--
       },
 
@@ -55,8 +46,16 @@
           icon: word[0].toUpperCase(),
           iconClass: 'grey lighten-1 white--text'
         })
-        this.ui.inputNew = null
+        this.ui.newWord = { word: null, translate: null }
         this.ui.isAddWord = false
+        this.saveItemsDatabase()
+      },
+
+      removeWord (item) {
+        if (!confirm(`The word "${item.word}" will be removed, has sure?`)) return
+        const index = this.items.indexOf(item)
+        this.items.splice(index, 1)
+        this.saveItemsDatabase()
       },
 
       filterItemsByWord (value) {
@@ -75,14 +74,37 @@
           return wordLower.indexOf(searchLower) >= 0 ||
             translateLower.indexOf(searchLower) >= 0
         })
+      },
+
+      showSearch () {
+        this.ui.isSearchWord = !this.ui.isSearchWord
+        this.$nextTick(this.$refs.search.focus)
+      },
+
+      showAdd () {
+        this.ui.isAddWord = !this.ui.isAddWord
+        this.$nextTick(this.$refs.word.focus)
+      },
+
+      saveItemsDatabase () {
+        window.localStorage.setItem('items', JSON.stringify(this.items))
+      },
+
+      loadItemsDatabase () {
+        const items = window.localStorage.getItem('items')
+        this.items = items ? JSON.parse(items) : []
       }
+    },
+
+    created () {
+      this.loadItemsDatabase()
     }
   }
 </script>
 
 <template>
-  <v-app>
-    <v-content class="disable-selection">
+  <v-app class="disable-selection">
+    <v-content>
       <v-slide-y-transition mode="out-in">
         <v-layout row>
           <v-flex xs12 sm6 offset-sm3>
@@ -94,11 +116,11 @@
 
                 <v-spacer></v-spacer>
 
-                <v-btn icon @click="ui.isSearchWord = !ui.isSearchWord">
+                <v-btn icon @click="showSearch">
                   <v-icon>search</v-icon>
                 </v-btn>
 
-                <v-btn icon @click="ui.isAddWord = !ui.isAddWord">
+                <v-btn icon @click="showAdd">
                   <v-icon>add</v-icon>
                 </v-btn>
               </v-toolbar>
@@ -109,6 +131,8 @@
                     label="Search"
                     prepend-icon="search"
                     v-model="ui.inputSearch"
+                    ref="search"
+                    clearable
                   ></v-text-field>
                 </v-list-tile>
               </v-slide-y-transition>
@@ -130,7 +154,7 @@
                   </v-list-tile-content>
 
                   <v-list-tile-action>
-                    <v-btn icon @click="removeFrequency(item)">
+                    <v-btn icon @click="decreaseFrequency(item)">
                       <v-icon>remove_circle_outline</v-icon>
                     </v-btn>
                   </v-list-tile-action>
@@ -142,6 +166,12 @@
                   <v-list-tile-action>
                     <v-btn icon @click="addFrequency(item)">
                       <v-icon>add_circle_outline</v-icon>
+                    </v-btn>
+                  </v-list-tile-action>
+
+                  <v-list-tile-action>
+                    <v-btn icon @click="removeWord(item)">
+                      <v-icon color="grey">delete</v-icon>
                     </v-btn>
                   </v-list-tile-action>
                 </v-list-tile>
@@ -162,11 +192,13 @@
               label="Word"
               prepend-icon="edit"
               v-model="ui.newWord.word"
+              ref="word"
             ></v-text-field>
             <v-text-field
               label="Translate"
               prepend-icon="edit"
               v-model="ui.newWord.translate"
+              ref="translate"
             ></v-text-field>
           </v-card-text>
 

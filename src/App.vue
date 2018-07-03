@@ -6,7 +6,10 @@
         ui: {
           isAddWord: false,
           isSearchWord: false,
-          inputNew: null,
+          newWord: {
+            word: null,
+            translate: null
+          },
           inputSearch: null
         },
         items: [
@@ -27,14 +30,7 @@
 
       filteredItems () {
         if (!this.ui.inputSearch) return this.items
-
-        return this.items.filter(item => {
-          const wordLower = item.word.toLowerCase()
-          const translateLower = item.translate.toLowerCase()
-          const searchLower = this.ui.inputSearch.toLowerCase()
-          return wordLower.indexOf(searchLower) >= 0 ||
-            translateLower.indexOf(searchLower) >= 0
-        })
+        return this.filterItems(this.ui.inputSearch)
       }
     },
 
@@ -42,20 +38,43 @@
       addFrequency (item) {
         item.frequency++
       },
+
       removeFrequency (item) {
         item.frequency > 0 && item.frequency--
       },
-      addWord() {
-        if (!this.ui.inputNew || this.ui.inputNew.length < 3) return
+
+      addWord () {
+        const word = this.ui.newWord.word
+        const translate = this.ui.newWord.translate || '?'
+        if (!word || word.length < 3) return
+        if (this.filterItemsByWord(word).length > 0) return
         this.items.push({
-          icon: this.ui.inputNew[0].toUpperCase(),
-          iconClass: 'grey lighten-1 white--text',
-          title: this.ui.inputNew,
-          subtitle: Date(),
-          frequency: 1
+          word: word,
+          translate: translate,
+          frequency: 1,
+          icon: word[0].toUpperCase(),
+          iconClass: 'grey lighten-1 white--text'
         })
         this.ui.inputNew = null
         this.ui.isAddWord = false
+      },
+
+      filterItemsByWord (value) {
+        return this.items.filter(item => {
+          const wordLower = item.word.toLowerCase()
+          const searchLower = value.toLowerCase()
+          return wordLower.indexOf(searchLower) >= 0
+        })
+      },
+
+      filterItems (value) {
+        return this.items.filter(item => {
+          const wordLower = item.word.toLowerCase()
+          const translateLower = item.translate.toLowerCase()
+          const searchLower = value.toLowerCase()
+          return wordLower.indexOf(searchLower) >= 0 ||
+            translateLower.indexOf(searchLower) >= 0
+        })
       }
     }
   }
@@ -83,26 +102,6 @@
                   <v-icon>add</v-icon>
                 </v-btn>
               </v-toolbar>
-
-              <v-slide-y-transition data-dev="add-word">
-                <v-list-tile class="mt-4" v-show="ui.isAddWord">
-                  <v-text-field
-                    label="Word"
-                    prepend-icon="edit"
-                    v-model="ui.inputNew"
-                  ></v-text-field>
-                  <v-list-tile-action>
-                    <v-btn
-                      icon
-                      round
-                      class="ml-5"
-                      @click="addWord"
-                    >
-                      <v-icon>save_alt</v-icon>
-                    </v-btn>
-                  </v-list-tile-action>
-                </v-list-tile>
-              </v-slide-y-transition>
 
               <v-slide-y-transition data-dev="search-word">
                 <v-list-tile class="mt-4" v-show="ui.isSearchWord">
@@ -151,6 +150,40 @@
           </v-flex>
         </v-layout>
       </v-slide-y-transition>
+
+      <v-dialog v-model="ui.isAddWord" width="500">
+        <v-card>
+          <v-card-title class="headline grey lighten-2" primary-title>
+            New Word
+          </v-card-title>
+
+          <v-card-text>
+            <v-text-field
+              label="Word"
+              prepend-icon="edit"
+              v-model="ui.newWord.word"
+            ></v-text-field>
+            <v-text-field
+              label="Translate"
+              prepend-icon="edit"
+              v-model="ui.newWord.translate"
+            ></v-text-field>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              flat
+              @click="addWord"
+            >
+              Save
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-content>
     <v-footer :fixed="false" app>
       <v-spacer></v-spacer>

@@ -20,18 +20,25 @@
       },
 
       filteredItems () {
-        if (!this.ui.inputSearch) return this.items
-        return this.filterItems(this.ui.inputSearch)
+        let callbackSort = (a, b) => {
+          return a.frequency < b.frequency
+        }
+        if (!this.ui.inputSearch) return this.items.sort(callbackSort)
+        return this.filterItems(this.ui.inputSearch).sort(callbackSort)
       }
     },
 
     methods: {
       addFrequency (item) {
         item.frequency++
+        this.saveItemsDatabase()
       },
 
       decreaseFrequency (item) {
-        item.frequency > 0 && item.frequency--
+        if (item.frequency > 0) {
+          item.frequency--
+          this.saveItemsDatabase()
+        }
       },
 
       addWord () {

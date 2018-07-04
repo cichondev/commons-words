@@ -9,7 +9,8 @@
           word: null,
           translate: null
         },
-        inputSearch: null
+        inputSearch: null,
+        isLoading: true
       },
       items: []
     }),
@@ -100,8 +101,11 @@
       },
 
       loadItemsDatabase () {
-        const items = window.localStorage.getItem('items')
-        this.items = items ? JSON.parse(items) : []
+        setTimeout(() => {
+          const items = window.localStorage.getItem('items')
+          this.items = items ? JSON.parse(items) : []
+          this.ui.isLoading = false
+        }, 1000)
       }
     },
 
@@ -115,81 +119,84 @@
 <template>
   <v-app class="disable-selection">
     <v-content>
-      <v-slide-y-transition mode="out-in">
-        <v-layout row>
-          <v-flex xs12 sm6 offset-sm3>
-            <v-card>
-              <v-toolbar color="light-blue" dark>
-                <v-toolbar-side-icon></v-toolbar-side-icon>
 
-                <v-toolbar-title>{{ title }}</v-toolbar-title>
+      <v-layout row>
+        <v-flex xs12 sm6 offset-sm3>
+          <v-card>
+            <v-toolbar color="light-blue" dark>
+              <v-toolbar-side-icon></v-toolbar-side-icon>
 
-                <v-spacer></v-spacer>
+              <v-toolbar-title>{{ title }}</v-toolbar-title>
 
-                <v-btn icon @click="showSearch">
-                  <v-icon>search</v-icon>
-                </v-btn>
+              <v-spacer></v-spacer>
 
-                <v-btn icon @click="showAdd">
-                  <v-icon>add</v-icon>
-                </v-btn>
-              </v-toolbar>
+              <v-btn icon @click="showSearch">
+                <v-icon>search</v-icon>
+              </v-btn>
 
-              <v-slide-y-transition data-dev="search-word">
-                <v-list-tile class="mt-4" v-show="ui.isSearchWord">
-                  <v-text-field
-                    label="Search"
-                    prepend-icon="search"
-                    v-model="ui.inputSearch"
-                    ref="search"
-                    clearable
-                  ></v-text-field>
-                </v-list-tile>
-              </v-slide-y-transition>
+              <v-btn icon @click="showAdd">
+                <v-icon>add</v-icon>
+              </v-btn>
+            </v-toolbar>
 
-              <v-list two-line subheader>
-                <v-list-tile
-                  v-for="item in filteredItems"
-                  :key="item.word"
-                  avatar
-                  @click=""
-                >
-                  <v-list-tile-avatar>
-                    <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
-                  </v-list-tile-avatar>
+            <v-slide-y-transition data-dev="progress">
+              <v-progress-linear :indeterminate="true" v-show="ui.isLoading"></v-progress-linear>
+            </v-slide-y-transition>
 
-                  <v-list-tile-content>
-                    <v-list-tile-title>{{ item.word }}</v-list-tile-title>
-                    <v-list-tile-sub-title>{{ item.translate }}</v-list-tile-sub-title>
-                  </v-list-tile-content>
+            <v-slide-y-transition data-dev="search-word">
+              <v-list-tile class="mt-4" v-show="ui.isSearchWord">
+                <v-text-field
+                  label="Search"
+                  prepend-icon="search"
+                  v-model="ui.inputSearch"
+                  ref="search"
+                  clearable
+                ></v-text-field>
+              </v-list-tile>
+            </v-slide-y-transition>
 
-                  <v-list-tile-action>
-                    <v-btn icon @click="decreaseFrequency(item)">
-                      <v-icon>remove_circle_outline</v-icon>
-                    </v-btn>
-                  </v-list-tile-action>
+            <v-list two-line subheader>
+              <v-list-tile
+                v-for="item in filteredItems"
+                :key="item.word"
+                avatar
+                @click=""
+              >
+                <v-list-tile-avatar>
+                  <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
+                </v-list-tile-avatar>
 
-                  <span class="ml-4">
-                    {{ item.frequency }}
-                  </span>
+                <v-list-tile-content>
+                  <v-list-tile-title>{{ item.word }}</v-list-tile-title>
+                  <v-list-tile-sub-title>{{ item.translate }}</v-list-tile-sub-title>
+                </v-list-tile-content>
 
-                  <v-list-tile-action>
-                    <v-btn icon @click="addFrequency(item)">
-                      <v-icon>add_circle_outline</v-icon>
-                    </v-btn>
-                  </v-list-tile-action>
+                <v-list-tile-action>
+                  <v-btn icon @click="decreaseFrequency(item)">
+                    <v-icon>remove_circle_outline</v-icon>
+                  </v-btn>
+                </v-list-tile-action>
 
-                  <v-list-tile-action>
-                    <v-btn icon @click="removeWord(item)">
-                      <v-icon color="grey">delete</v-icon>
-                    </v-btn>
-                  </v-list-tile-action>
-                </v-list-tile>
-              </v-list>
-            </v-card>
-          </v-flex>
-        </v-layout>
-      </v-slide-y-transition>
+                <span class="ml-4">
+                  {{ item.frequency }}
+                </span>
+
+                <v-list-tile-action>
+                  <v-btn icon @click="addFrequency(item)">
+                    <v-icon>add_circle_outline</v-icon>
+                  </v-btn>
+                </v-list-tile-action>
+
+                <v-list-tile-action>
+                  <v-btn icon @click="removeWord(item)">
+                    <v-icon color="grey">delete</v-icon>
+                  </v-btn>
+                </v-list-tile-action>
+              </v-list-tile>
+            </v-list>
+          </v-card>
+        </v-flex>
+      </v-layout>
 
       <v-dialog v-model="ui.isAddWord" width="500">
         <v-card>

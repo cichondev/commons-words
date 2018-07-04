@@ -107,6 +107,7 @@
 
     created () {
       this.loadItemsDatabase()
+      this.$ga.init()
     }
   }
 </script>

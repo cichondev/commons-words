@@ -21,7 +21,9 @@
 
       filteredItems () {
         let callbackSort = (a, b) => {
-          return a.frequency < b.frequency
+          if (a.frequency < b.frequency) return 1
+          if (a.frequency === b.frequency) return 0
+          if (a.frequency > b.frequency) return -1
         }
         if (!this.ui.inputSearch) return this.items.sort(callbackSort)
         return this.filterItems(this.ui.inputSearch).sort(callbackSort)

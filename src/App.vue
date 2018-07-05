@@ -12,7 +12,9 @@
         inputSearch: null,
         isLoading: true
       },
-      items: []
+      lastSetTimeOutID: null,
+      baseItems: [],
+      items: [],
     }),
 
     computed: {
@@ -20,18 +22,8 @@
         return `${new Date().getFullYear()} - Edilson Cichon`
       },
 
-      filteredItems () {
-        let callbackSort = (a, b) => {
-          if (a.frequency < b.frequency) return 1
-          if (a.frequency === b.frequency) return 0
-          if (a.frequency > b.frequency) return -1
-        }
-        if (!this.ui.inputSearch) return this.items.sort(callbackSort)
-        return this.filterItems(this.ui.inputSearch).sort(callbackSort)
-      },
-
       message () {
-        return this.ui.isSearching && this.filteredItems.length === 0
+        return this.ui.isSearching && this.items.length === 0
           ? 'No words found! =('
           : 'Register your first word!'
       }
@@ -83,7 +75,7 @@
       },
 
       filterItems (value) {
-        return this.items.filter(item => {
+        return this.baseItems.filter(item => {
           const wordLower = item.word.toLowerCase()
           const translateLower = item.translate.toLowerCase()
           const searchLower = value.toLowerCase()
@@ -97,6 +89,14 @@
         this.$nextTick(this.$refs.search.focus)
       },
 
+      performSearch (value) {
+        let vm = this
+        clearTimeout(this.lastSetTimeOutID)
+        this.lastSetTimeOutID = setTimeout(() => {
+          vm.items = vm.filterItems(value)
+        }, 500)
+      },
+
       showAdd () {
         this.ui.isAddWord = !this.ui.isAddWord
         this.$nextTick(this.$refs.word.focus)
@@ -106,10 +106,18 @@
         window.localStorage.setItem('items', JSON.stringify(this.items))
       },
 
+      callbackSort (a, b) {
+        if (a.frequency < b.frequency) return 1
+        if (a.frequency === b.frequency) return 0
+        if (a.frequency > b.frequency) return -1
+      },
+
       loadItemsDatabase () {
         setTimeout(() => {
           const items = window.localStorage.getItem('items')
-          this.items = items ? JSON.parse(items) : []
+          this.baseItems = items ? JSON.parse(items) : []
+          this.baseItems = this.baseItems.sort(this.callbackSort)
+          this.items = this.baseItems
           this.ui.isLoading = false
         }, 1000)
       }
@@ -149,6 +157,7 @@
                 clearable
                 single-line
                 class="mt-3"
+                @input="performSearch(ui.inputSearch)"
               ></v-text-field>
             </v-toolbar>
 
@@ -158,7 +167,7 @@
 
             <v-list two-line subheader>
               <v-list-tile
-                v-for="item in filteredItems"
+                v-for="item in items"
                 :key="item.word"
                 avatar
                 @click=""
@@ -196,7 +205,7 @@
               </v-list-tile>
             </v-list>
 
-            <v-layout v-show="!ui.isLoading && filteredItems.length === 0">
+            <v-layout v-show="!ui.isLoading && items.length === 0">
               <v-flex>
                 <v-alert
                   center

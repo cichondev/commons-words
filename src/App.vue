@@ -122,7 +122,8 @@
       <v-layout row>
         <v-flex xs12 sm6 offset-sm3>
           <v-card>
-            <v-toolbar color="light-blue" dark app>
+
+            <v-toolbar color="light-blue" dark app v-show="!ui.isSearchWord">
               <v-toolbar-side-icon></v-toolbar-side-icon>
 
               <v-toolbar-title>{{ title }}</v-toolbar-title>
@@ -138,20 +139,24 @@
               </v-btn>
             </v-toolbar>
 
+            <v-toolbar color="light-blue" dark app v-show="ui.isSearchWord">
+              <v-btn icon @click="ui.isSearchWord = false">
+                <v-icon>arrow_back</v-icon>
+              </v-btn>
+
+              <v-text-field
+                label="Search..."
+                v-model="ui.inputSearch"
+                ref="search"
+                clearable
+                single-line
+                class="mt-3"
+              ></v-text-field>
+
+            </v-toolbar>
+
             <v-slide-y-transition data-dev="progress">
               <v-progress-linear :indeterminate="true" v-show="ui.isLoading"></v-progress-linear>
-            </v-slide-y-transition>
-
-            <v-slide-y-transition data-dev="search-word">
-              <v-list-tile class="mt-4" v-show="ui.isSearchWord">
-                <v-text-field
-                  label="Search"
-                  prepend-icon="search"
-                  v-model="ui.inputSearch"
-                  ref="search"
-                  clearable
-                ></v-text-field>
-              </v-list-tile>
             </v-slide-y-transition>
 
             <v-list two-line subheader>

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+yarn build
+
+git commit -a
+
+git push origin master

@@ -119,11 +119,10 @@
 <template>
   <v-app class="disable-selection">
     <v-content>
-
       <v-layout row>
         <v-flex xs12 sm6 offset-sm3>
           <v-card>
-            <v-toolbar color="light-blue" dark>
+            <v-toolbar color="light-blue" dark app>
               <v-toolbar-side-icon></v-toolbar-side-icon>
 
               <v-toolbar-title>{{ title }}</v-toolbar-title>
@@ -234,10 +233,6 @@
         </v-card>
       </v-dialog>
     </v-content>
-    <v-footer :fixed="false" app>
-      <v-spacer></v-spacer>
-      <span class="mr-3">&copy {{ copyright }}</span>
-    </v-footer>
   </v-app>
 </template>
 

@@ -10,11 +10,12 @@
           translate: null
         },
         inputSearch: null,
-        isLoading: true
+        isLoading: true,
+        dataSaved: true
       },
       lastSetTimeOutID: null,
       baseItems: [],
-      items: [],
+      items: []
     }),
 
     computed: {
@@ -32,13 +33,13 @@
     methods: {
       addFrequency (item) {
         item.frequency++
-        this.saveItemsDatabase()
+        this.ui.dataSaved = false
       },
 
       decreaseFrequency (item) {
         if (item.frequency > 0) {
           item.frequency--
-          this.saveItemsDatabase()
+          this.ui.dataSaved = false
         }
       },
 
@@ -47,13 +48,15 @@
         const translate = this.ui.newWord.translate || '?'
         if (!word || word.length < 3) return
         if (this.filterItemsByWord(word).length > 0) return
-        this.items.push({
+        let item = {
           word: word,
           translate: translate,
           frequency: 1,
           icon: word[0].toUpperCase(),
           iconClass: 'grey lighten-1 white--text'
-        })
+        }
+        this.items.push(item)
+        this.baseItems.push(item)
         this.ui.newWord = { word: null, translate: null }
         this.ui.isAddWord = false
         this.saveItemsDatabase()
@@ -61,8 +64,10 @@
 
       removeWord (item) {
         if (!confirm(`The word "${item.word}" will be removed, has sure?`)) return
-        const index = this.items.indexOf(item)
+        let index = this.items.indexOf(item)
         this.items.splice(index, 1)
+        index = this.baseItems.indexOf(item)
+        this.baseItems.splice(index, 1)
         this.saveItemsDatabase()
       },
 
@@ -89,12 +94,16 @@
         this.$nextTick(this.$refs.search.focus)
       },
 
-      performSearch (value) {
-        let vm = this
+      performSearch () {
         clearTimeout(this.lastSetTimeOutID)
         this.lastSetTimeOutID = setTimeout(() => {
-          vm.items = vm.filterItems(value)
+          this.items = this.filterItems(this.ui.inputSearch || '')
         }, 500)
+      },
+
+      sort () {
+        this.items = this.items.sort(this.callbackSort)
+        this.saveItemsDatabase()
       },
 
       showAdd () {
@@ -104,6 +113,7 @@
 
       saveItemsDatabase () {
         window.localStorage.setItem('items', JSON.stringify(this.items))
+        this.ui.dataSaved = true
       },
 
       callbackSort (a, b) {
@@ -117,7 +127,7 @@
           const items = window.localStorage.getItem('items')
           this.baseItems = items ? JSON.parse(items) : []
           this.baseItems = this.baseItems.sort(this.callbackSort)
-          this.items = this.baseItems
+          this.items = [...this.baseItems]
           this.ui.isLoading = false
         }, 1000)
       }
@@ -144,6 +154,12 @@
               <v-btn icon @click="showSearch">
                 <v-icon>search</v-icon>
               </v-btn>
+              <v-btn icon @click="sort">
+                <v-icon>filter_list</v-icon>
+              </v-btn>
+              <v-btn icon :disabled="ui.dataSaved" @click="saveItemsDatabase">
+                <v-icon>save</v-icon>
+              </v-btn>
             </v-toolbar>
 
             <v-toolbar color="light-blue" dark app v-show="ui.isSearching">
@@ -157,7 +173,7 @@
                 clearable
                 single-line
                 class="mt-3"
-                @input="performSearch(ui.inputSearch)"
+                @input="performSearch"
               ></v-text-field>
             </v-toolbar>
 
@@ -227,6 +243,7 @@
               bottom
               right
               @click="showAdd"
+              class="mb-5"
             >
               <v-icon color="white">add</v-icon>
             </v-btn>

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+echo -e 'Build assets...\n'
 yarn build
 
+echo -e 'Commiting...\n'
 git commit -a
 
+echo -e 'Deploying...\n'
 git push origin master

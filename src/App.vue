@@ -4,7 +4,7 @@
       title: 'Commons Words',
       ui: {
         isAddWord: false,
-        isSearchWord: false,
+        isSearching: false,
         newWord: {
           word: null,
           translate: null
@@ -28,6 +28,12 @@
         }
         if (!this.ui.inputSearch) return this.items.sort(callbackSort)
         return this.filterItems(this.ui.inputSearch).sort(callbackSort)
+      },
+
+      message () {
+        return this.ui.isSearching && this.filteredItems.length === 0
+          ? 'No words found! =('
+          : 'Register your first word!'
       }
     },
 
@@ -87,7 +93,7 @@
       },
 
       showSearch () {
-        this.ui.isSearchWord = !this.ui.isSearchWord
+        this.ui.isSearching = true
         this.$nextTick(this.$refs.search.focus)
       },
 
@@ -123,27 +129,19 @@
         <v-flex xs12 sm6 offset-sm3>
           <v-card>
 
-            <v-toolbar color="light-blue" dark app v-show="!ui.isSearchWord">
+            <v-toolbar color="light-blue" dark app v-show="!ui.isSearching">
               <v-toolbar-side-icon></v-toolbar-side-icon>
-
               <v-toolbar-title>{{ title }}</v-toolbar-title>
-
               <v-spacer></v-spacer>
-
               <v-btn icon @click="showSearch">
                 <v-icon>search</v-icon>
               </v-btn>
-
-              <v-btn icon @click="showAdd">
-                <v-icon>add</v-icon>
-              </v-btn>
             </v-toolbar>
 
-            <v-toolbar color="light-blue" dark app v-show="ui.isSearchWord">
-              <v-btn icon @click="ui.isSearchWord = false">
+            <v-toolbar color="light-blue" dark app v-show="ui.isSearching">
+              <v-btn icon @click="ui.isSearching = false">
                 <v-icon>arrow_back</v-icon>
               </v-btn>
-
               <v-text-field
                 label="Search..."
                 v-model="ui.inputSearch"
@@ -152,7 +150,6 @@
                 single-line
                 class="mt-3"
               ></v-text-field>
-
             </v-toolbar>
 
             <v-slide-y-transition data-dev="progress">
@@ -198,6 +195,32 @@
                 </v-list-tile-action>
               </v-list-tile>
             </v-list>
+
+            <v-layout v-show="!ui.isLoading && filteredItems.length === 0">
+              <v-flex>
+                <v-alert
+                  center
+                  :value="true"
+                  color="info"
+                  icon="info"
+                  outline
+                  class="elevation-5 ma-5"
+                >
+                    {{ message }}
+                </v-alert>
+              </v-flex>
+            </v-layout>
+
+            <v-btn
+              fab
+              color="light-blue"
+              fixed
+              bottom
+              right
+              @click="showAdd"
+            >
+              <v-icon color="white">add</v-icon>
+            </v-btn>
           </v-card>
         </v-flex>
       </v-layout>

@@ -232,8 +232,9 @@
                   </v-btn>
                 </v-list-tile-action>
               </v-list-tile>
-              <v-list-tile></v-list-tile>
             </v-list>
+
+            <v-layout row style="margin-bottom: 80px"></v-layout>
 
             <v-layout v-show="ui.message.isVisible">
               <v-flex>

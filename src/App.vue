@@ -186,7 +186,6 @@
                 v-for="item in items"
                 :key="item.word"
                 avatar
-                @click=""
               >
                 <v-list-tile-avatar>
                   <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
@@ -219,6 +218,7 @@
                   </v-btn>
                 </v-list-tile-action>
               </v-list-tile>
+              <v-list-tile></v-list-tile>
             </v-list>
 
             <v-layout v-show="!ui.isLoading && items.length === 0">
@@ -243,7 +243,6 @@
               bottom
               right
               @click="showAdd"
-              class="mb-5"
             >
               <v-icon color="white">add</v-icon>
             </v-btn>

@@ -1,7 +1,7 @@
 <script>
   export default {
     data: () => ({
-      title: 'Commons Words',
+      title: 'Words',
       ui: {
         isAddWord: false,
         isSearching: false,
@@ -11,24 +11,18 @@
         },
         inputSearch: null,
         isLoading: true,
-        dataSaved: true
+        dataSaved: true,
+        message: {
+          isVisible: false,
+          content: null,
+          color: 'info',
+          icon: 'info'
+        }
       },
       lastSetTimeOutID: null,
       baseItems: [],
       items: []
     }),
-
-    computed: {
-      copyright () {
-        return `${new Date().getFullYear()} - Edilson Cichon`
-      },
-
-      message () {
-        return this.ui.isSearching && this.items.length === 0
-          ? 'No words found! =('
-          : 'Register your first word!'
-      }
-    },
 
     methods: {
       addFrequency (item) {
@@ -97,7 +91,14 @@
       performSearch () {
         clearTimeout(this.lastSetTimeOutID)
         this.lastSetTimeOutID = setTimeout(() => {
-          this.items = this.filterItems(this.ui.inputSearch || '')
+          const search = document.getElementById('search_text_field').value
+          this.items = this.filterItems(search || '')
+          if (this.items.length === 0) {
+            this.ui.message.isVisible = true
+            this.ui.message.content = 'No words found! =('
+          } else {
+            this.ui.message.isVisible = false
+          }
         }, 500)
       },
 
@@ -112,7 +113,7 @@
       },
 
       saveItemsDatabase () {
-        window.localStorage.setItem('items', JSON.stringify(this.items))
+        window.localStorage.setItem('items', JSON.stringify(this.baseItems))
         this.ui.dataSaved = true
       },
 
@@ -128,8 +129,21 @@
           this.baseItems = items ? JSON.parse(items) : []
           this.baseItems = this.baseItems.sort(this.callbackSort)
           this.items = [...this.baseItems]
+          if (this.items.length === 0) {
+            this.ui.message.isVisible = true
+            this.ui.message.content = 'Register your first word!'
+          } else {
+            this.ui.message.isVisible = false
+          }
           this.ui.isLoading = false
         }, 1000)
+      },
+
+      performance (callback) {
+        const startTime = window.performance.now();
+        callback()
+        const duration = window.performance.now() - startTime;
+        console.warn(`time took ${duration}ms`);
       }
     },
 
@@ -168,8 +182,8 @@
               </v-btn>
               <v-text-field
                 label="Search..."
-                v-model="ui.inputSearch"
                 ref="search"
+                id="search_text_field"
                 clearable
                 single-line
                 class="mt-3"
@@ -221,17 +235,17 @@
               <v-list-tile></v-list-tile>
             </v-list>
 
-            <v-layout v-show="!ui.isLoading && items.length === 0">
+            <v-layout v-show="ui.message.isVisible">
               <v-flex>
                 <v-alert
                   center
                   :value="true"
-                  color="info"
-                  icon="info"
+                  :color="ui.message.color"
+                  :icon="ui.message.icon"
                   outline
-                  class="elevation-5 ma-5"
+                  class="elevation-5 mb-5 mx-5"
                 >
-                    {{ message }}
+                    {{ ui.message.content }}
                 </v-alert>
               </v-flex>
             </v-layout>

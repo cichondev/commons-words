@@ -45,9 +45,7 @@
         let item = {
           word: word,
           translate: translate,
-          frequency: 1,
-          icon: word[0].toUpperCase(),
-          iconClass: 'grey lighten-1 white--text'
+          frequency: 1
         }
         this.items.push(item)
         this.baseItems.push(item)
@@ -137,13 +135,6 @@
           }
           this.ui.isLoading = false
         }, 1000)
-      },
-
-      performance (callback) {
-        const startTime = window.performance.now();
-        callback()
-        const duration = window.performance.now() - startTime;
-        console.warn(`time took ${duration}ms`);
       }
     },
 
@@ -202,7 +193,7 @@
                 avatar
               >
                 <v-list-tile-avatar>
-                  <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
+                  <v-icon class="grey lighten-1 white--text">{{ item.word[0].toUpperCase() }}</v-icon>
                 </v-list-tile-avatar>
 
                 <v-list-tile-content>

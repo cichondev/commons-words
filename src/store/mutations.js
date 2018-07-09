@@ -2,17 +2,17 @@ const mutations = {
 
   initStore (state, items) {
     state.baseItems = items
-    state.items = [...state.baseItems]
+    state.itemsDisplayed = [...state.baseItems]
     state.isLoading = false
   },
 
   setItems (state, items) {
     state.baseItems = items
-    state.items = [...state.baseItems]
+    state.itemsDisplayed = [...state.baseItems]
   },
 
-  setFilteredItems (state, items) {
-    state.items = [...items]
+  setDisplayedItems (state, items) {
+    state.itemsDisplayed = [...items]
   },
 
   itemsSaved (state) {
@@ -23,19 +23,19 @@ const mutations = {
     state.dataSaved = false
   },
 
-  removeItem(state, item) {
-    let index = state.items.indexOf(item)
-    state.items.splice(index, 1)
+  removeItem (state, item) {
+    let index = state.itemsDisplayed.indexOf(item)
+    state.itemsDisplayed.splice(index, 1)
     index = state.baseItems.indexOf(item)
     state.baseItems.splice(index, 1)
   },
 
-  addItem(state, item) {
-    state.items.push(item)
+  addItem (state, item) {
+    state.itemsDisplayed.push(item)
     state.baseItems.push(item)
   },
 
-  addFrequency(state, item) {
+  addFrequency (state, item) {
     item.frequency++
     state.dataSaved = false
   },

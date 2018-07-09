@@ -1,47 +1,34 @@
-//
-// helpers / services
-// TODO Mover p/ arquivo separado...
-const callbackSort = function (a, b) {
-  if (a.frequency < b.frequency) return 1
-  if (a.frequency === b.frequency) return 0
-  if (a.frequency > b.frequency) return -1
-}
-const filterItemsByWord = function (value) {
-  return this.items.filter(item => {
-    const wordLower = item.word.toLowerCase()
-    const searchLower = value.toLowerCase()
-    return wordLower.indexOf(searchLower) >= 0
-  })
-}
-const filterItems = function (value) {
-  return this.baseItems.filter(item => {
-    const wordLower = item.word.toLowerCase()
-    const translateLower = item.translate.toLowerCase()
-    const searchLower = value.toLowerCase()
-    return wordLower.indexOf(searchLower) >= 0 ||
-      translateLower.indexOf(searchLower) >= 0
-  })
-}
+import {
+  callbackSort,
+  filterItems,
+  filterItemsByWord
+} from '../services/words'
 
 const actions = {
   /**
-   * TODO encapsular em services
+   * Init state store with loading data of LocalStorage.
+   *
+   * @param state
+   * @param commit
+   * @return {Promise}
    */
   initStore ({ state, commit }) {
-    setTimeout(() => {
-      const items = window.localStorage.getItem('items')
-      let baseItems = items ? JSON.parse(items) : []
-      commit('initStore', baseItems.sort(callbackSort))
-      // if (this.items.length === 0) {
-      //   this.ui.message.isVisible = true
-      //   this.ui.message.content = 'Register your first word!'
-      // } else {
-      //   this.ui.message.isVisible = false
-      // }
-      // this.ui.isLoading = false
-    }, 1100)
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const items = window.localStorage.getItem('items')
+        let baseItems = items ? JSON.parse(items) : []
+        commit('initStore', baseItems.sort(callbackSort))
+        resolve()
+      }, 1100)
+    })
   },
 
+  /**
+   * Save state items in LocalStorage.
+   *
+   * @param state
+   * @param commit
+   */
   saveItems ({ state, commit }) {
     setTimeout(() => {
       window.localStorage.setItem('items', JSON.stringify(state.baseItems))
@@ -49,50 +36,64 @@ const actions = {
     }, 1)
   },
 
-  sort ({ state, commit, dispatch }) {
+  /**
+   * Sort state items.
+   *
+   * @param state
+   * @param commit
+   * @param dispatch
+   */
+  sortItems ({ state, commit, dispatch }) {
     setTimeout(() => {
-      commit('setItems', state.items.sort(callbackSort))
+      commit('setItems', state.itemsDisplayed.sort(callbackSort))
       dispatch('saveItems')
     }, 1)
   },
 
   /**
-   * TODO O componente deverá passar um callback que retorna o valor do input de busca
-   * () => { document.getElementById('search').value }
+   * Exec search by value returned by 'getSearchValue', in state items.
+   *
+   * @param state
+   * @param commit
+   * @param payload {Object}
    */
-  performSearch ({ state, commit }, getSearchValue) {
+  performSearch ({ state, commit }, payload) {
     clearTimeout(state.lastIDSetTimeOut)
     const lastID = setTimeout(() => {
-      const search = getSearchValue()
-      commit('setFilteredItems', filterItems(search || ''))
-      // if (state.items.length === 0) {
-      //   this.ui.message.isVisible = true
-      //   this.ui.message.content = 'No words found! =('
-      // } else {
-      //   this.ui.message.isVisible = false
-      // }
+      const search = payload.getSearchValue()
+      commit('setDisplayedItems', filterItems(state.baseItems, search || ''))
+      payload.onFinished()
     }, 500)
     commit('changeLastIDSetTimeOut', lastID)
   },
 
-  addWord ({ state, commit, dispatch }, item) {
-    // TODO O componente terá que montar o objeto 'item' abaixo.
-    // item = {
-    //   word: this.ui.newWord.word,
-    //   translate: this.ui.newWord.translate || '?',
-    //   frequency: 1
-    // }
-    // TODO após concluída a action
-    // this.ui.newWord = { word: null, translate: null }
-    // this.ui.isAddWord = false
-
-    if (!item.word || item.word.length < 3) return
-    if (filterItemsByWord(item.word).length > 0) return
-    commit('addItem', item)
-    dispatch('saveItems')
+  /**
+   * Trigger add item to state items and trigger save state.
+   *
+   * @param state
+   * @param commit
+   * @param dispatch
+   * @param item
+   * @returns {Promise}
+   */
+  add ({ state, commit, dispatch }, item) {
+    return new Promise((resolve) => {
+      if (!item.word || item.word.length < 3) return
+      if (filterItemsByWord(state.itemsDisplayed, item.word).length > 0) return
+      commit('addItem', item)
+      dispatch('saveItems')
+      resolve()
+    })
   },
 
-  removeWord ({ commit, dispatch }, item) {
+  /**
+   * Trigger remove the 'item' object of state.
+   *
+   * @param commit
+   * @param dispatch
+   * @param item
+   */
+  remove ({ commit, dispatch }, item) {
     commit('removeItem', item)
     dispatch('saveItems')
   }

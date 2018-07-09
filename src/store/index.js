@@ -8,7 +8,7 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     baseItems: [],
-    items: [],
+    itemsDisplayed: [],
     isLoading: true,
     dataSaved: true,
     lastIDSetTimeOut: null

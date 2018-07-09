@@ -1,5 +1,5 @@
 <script>
-  import { mapState, mapActions } from 'vuex'
+  import { mapState, mapActions, mapMutations } from 'vuex'
 
   export default {
     data: () => ({
@@ -23,7 +23,7 @@
 
     computed: {
       ...mapState([
-        'items',
+        'itemsDisplayed',
         'baseItems',
         'isLoading',
         'dataSaved'
@@ -31,7 +31,34 @@
     },
 
     methods: {
-      // of component
+
+      ...mapActions([
+        'initStore',
+        'add',
+        'remove',
+        'saveItems',
+        'sortItems',
+        'performSearch'
+      ]),
+
+      ...mapMutations([
+        'addFrequency',
+        'decreaseFrequency'
+      ]),
+
+      initialize () {
+        this.$ga.init()
+
+        this.initStore()
+          .then(() => {
+            if (this.itemsDisplayed.length === 0) {
+              this.ui.message.isVisible = true
+              this.ui.message.content = 'Register your first word!'
+            } else {
+              this.ui.message.isVisible = false
+            }
+          })
+      },
 
       showSearch () {
         this.ui.isSearching = true
@@ -43,19 +70,41 @@
         this.$nextTick(this.$refs.word.focus)
       },
 
-      ...mapActions([
-        'initStore', 'removeWord'
-      ]),
+      handleAdd () {
+        const item = {
+          word: this.ui.newWord.word,
+          translate: this.ui.newWord.translate || '?',
+          frequency: 1
+        }
+        this.add(item)
+          .then(() => {
+            this.ui.newWord = {word: null, translate: null}
+            this.ui.isAddWord = false
+          })
+      },
 
       handleRemove (item) {
         if (!confirm(`The word "${item.word}" will be removed, has sure?`)) return
-        this.removeWord(item)
+        this.remove(item)
+      },
+
+      handleSearch () {
+        this.performSearch({
+          getSearchValue: () => document.getElementById('search').value,
+          onFinished: () => {
+            if (this.itemsDisplayed.length === 0) {
+              this.ui.message.isVisible = true
+              this.ui.message.content = 'No words found!'
+            } else {
+              this.ui.message.isVisible = false
+            }
+          }
+        })
       }
     },
 
     created () {
-      this.initStore()
-      this.$ga.init()
+      this.initialize()
     }
   }
 </script>
@@ -74,10 +123,10 @@
               <v-btn icon @click="showSearch">
                 <v-icon>search</v-icon>
               </v-btn>
-              <v-btn icon @click="sort">
+              <v-btn icon @click="sortItems">
                 <v-icon>filter_list</v-icon>
               </v-btn>
-              <v-btn icon :disabled="ui.dataSaved" @click="saveItemsDatabase">
+              <v-btn icon :disabled="dataSaved" @click="saveItems">
                 <v-icon>save</v-icon>
               </v-btn>
             </v-toolbar>
@@ -93,7 +142,7 @@
                 clearable
                 single-line
                 class="mt-3"
-                @input="performSearch"
+                @input="handleSearch"
               ></v-text-field>
             </v-toolbar>
 
@@ -103,7 +152,7 @@
 
             <v-list two-line subheader>
               <v-list-tile
-                v-for="item in items"
+                v-for="item in itemsDisplayed"
                 :key="item.word"
                 avatar
               >
@@ -199,7 +248,7 @@
             <v-btn
               color="primary"
               flat
-              @click="addWord"
+              @click="handleAdd"
             >
               Save
             </v-btn>

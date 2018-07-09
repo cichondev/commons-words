@@ -1,4 +1,6 @@
 <script>
+  import { mapState, mapActions } from 'vuex'
+
   export default {
     data: () => ({
       title: 'Words',
@@ -10,99 +12,30 @@
           translate: null
         },
         inputSearch: null,
-        isLoading: true,
-        dataSaved: true,
         message: {
           isVisible: false,
           content: null,
           color: 'info',
           icon: 'info'
         }
-      },
-      lastSetTimeOutID: null,
-      baseItems: [],
-      items: []
+      }
     }),
 
+    computed: {
+      ...mapState([
+        'items',
+        'baseItems',
+        'isLoading',
+        'dataSaved'
+      ])
+    },
+
     methods: {
-      addFrequency (item) {
-        item.frequency++
-        this.ui.dataSaved = false
-      },
-
-      decreaseFrequency (item) {
-        if (item.frequency > 0) {
-          item.frequency--
-          this.ui.dataSaved = false
-        }
-      },
-
-      addWord () {
-        const word = this.ui.newWord.word
-        const translate = this.ui.newWord.translate || '?'
-        if (!word || word.length < 3) return
-        if (this.filterItemsByWord(word).length > 0) return
-        let item = {
-          word: word,
-          translate: translate,
-          frequency: 1
-        }
-        this.items.push(item)
-        this.baseItems.push(item)
-        this.ui.newWord = { word: null, translate: null }
-        this.ui.isAddWord = false
-        this.saveItemsDatabase()
-      },
-
-      removeWord (item) {
-        if (!confirm(`The word "${item.word}" will be removed, has sure?`)) return
-        let index = this.items.indexOf(item)
-        this.items.splice(index, 1)
-        index = this.baseItems.indexOf(item)
-        this.baseItems.splice(index, 1)
-        this.saveItemsDatabase()
-      },
-
-      filterItemsByWord (value) {
-        return this.items.filter(item => {
-          const wordLower = item.word.toLowerCase()
-          const searchLower = value.toLowerCase()
-          return wordLower.indexOf(searchLower) >= 0
-        })
-      },
-
-      filterItems (value) {
-        return this.baseItems.filter(item => {
-          const wordLower = item.word.toLowerCase()
-          const translateLower = item.translate.toLowerCase()
-          const searchLower = value.toLowerCase()
-          return wordLower.indexOf(searchLower) >= 0 ||
-            translateLower.indexOf(searchLower) >= 0
-        })
-      },
+      // of component
 
       showSearch () {
         this.ui.isSearching = true
         this.$nextTick(this.$refs.search.focus)
-      },
-
-      performSearch () {
-        clearTimeout(this.lastSetTimeOutID)
-        this.lastSetTimeOutID = setTimeout(() => {
-          const search = document.getElementById('search_text_field').value
-          this.items = this.filterItems(search || '')
-          if (this.items.length === 0) {
-            this.ui.message.isVisible = true
-            this.ui.message.content = 'No words found! =('
-          } else {
-            this.ui.message.isVisible = false
-          }
-        }, 500)
-      },
-
-      sort () {
-        this.items = this.items.sort(this.callbackSort)
-        this.saveItemsDatabase()
       },
 
       showAdd () {
@@ -110,36 +43,18 @@
         this.$nextTick(this.$refs.word.focus)
       },
 
-      saveItemsDatabase () {
-        window.localStorage.setItem('items', JSON.stringify(this.baseItems))
-        this.ui.dataSaved = true
-      },
+      ...mapActions([
+        'initStore', 'removeWord'
+      ]),
 
-      callbackSort (a, b) {
-        if (a.frequency < b.frequency) return 1
-        if (a.frequency === b.frequency) return 0
-        if (a.frequency > b.frequency) return -1
-      },
-
-      loadItemsDatabase () {
-        setTimeout(() => {
-          const items = window.localStorage.getItem('items')
-          this.baseItems = items ? JSON.parse(items) : []
-          this.baseItems = this.baseItems.sort(this.callbackSort)
-          this.items = [...this.baseItems]
-          if (this.items.length === 0) {
-            this.ui.message.isVisible = true
-            this.ui.message.content = 'Register your first word!'
-          } else {
-            this.ui.message.isVisible = false
-          }
-          this.ui.isLoading = false
-        }, 1000)
+      handleRemove (item) {
+        if (!confirm(`The word "${item.word}" will be removed, has sure?`)) return
+        this.removeWord(item)
       }
     },
 
     created () {
-      this.loadItemsDatabase()
+      this.initStore()
       this.$ga.init()
     }
   }
@@ -174,7 +89,7 @@
               <v-text-field
                 label="Search..."
                 ref="search"
-                id="search_text_field"
+                id="search"
                 clearable
                 single-line
                 class="mt-3"
@@ -183,7 +98,7 @@
             </v-toolbar>
 
             <v-slide-y-transition data-dev="progress">
-              <v-progress-linear :indeterminate="true" v-show="ui.isLoading"></v-progress-linear>
+              <v-progress-linear :indeterminate="true" v-show="isLoading"></v-progress-linear>
             </v-slide-y-transition>
 
             <v-list two-line subheader>
@@ -218,7 +133,7 @@
                 </v-list-tile-action>
 
                 <v-list-tile-action>
-                  <v-btn icon @click="removeWord(item)">
+                  <v-btn icon @click="handleRemove(item)">
                     <v-icon color="grey">delete</v-icon>
                   </v-btn>
                 </v-list-tile-action>

@@ -8,7 +8,10 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     baseItems: [],
-    items: []
+    items: [],
+    isLoading: true,
+    dataSaved: true,
+    lastIDSetTimeOut: null
   },
 
   mutations,
